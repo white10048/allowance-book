@@ -78,9 +78,9 @@ export const subscribe = (fn) => listeners.add(fn);
 export const getState = () => state;
 
 /* ---------- 설정 ---------- */
-export const updateSettings = (patch) => {
+export const updateSettings = (patch, { silent = false } = {}) => {
   state.settings = { ...state.settings, ...patch };
-  save();
+  silent ? persist() : save();
 };
 
 /* ---------- 기록 ---------- */

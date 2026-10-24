@@ -1,6 +1,6 @@
 // 오프라인 실행을 위한 서비스 워커
 // 앱 파일을 수정해 배포할 때는 VERSION 값을 올려 주세요.
-const VERSION = 'v1.0.0';
+const VERSION = 'v1.0.1';
 const CACHE = `allowance-book-${VERSION}`;
 const ASSETS = [
   './',

@@ -9,7 +9,7 @@ import {
   exportData, importData, resetAll,
 } from './store.js';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.1';
 const MIN_ROWS = 7; // 종이 양식처럼 빈 줄을 채워 보여줄 최소 줄 수
 
 const view = document.getElementById('view');
@@ -54,6 +54,10 @@ subscribe(render);
 document.querySelector('.tabbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button[data-tab]');
   if (!btn) return;
+  // iOS에서 키보드가 열려있을 때 탭 이동 시 blur/저장을 강제 실행
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
   ui.tab = btn.dataset.tab;
   history.replaceState(null, '', ui.tab === 'week' ? location.pathname : `#${ui.tab}`);
   render();
@@ -463,7 +467,7 @@ function renderSettings() {
             <input data-setting="initialBalance" inputmode="numeric" value="${s.initialBalance ? won(s.initialBalance) : ''}" placeholder="0">
             <span>원</span>
           </div>
-          <small class="help">기입장을 시작하기 전에 지갑에 있던 돈이에요. 첫 주의 '지난 주 남은 돈'이 됩니다.</small>
+          <small class="help">입력하는 즉시 자동으로 저장돼요. 첫 주의 '지난 주 남은 돈'이 됩니다.</small>
         </label>
       </div>
 
@@ -566,6 +570,11 @@ view.addEventListener('input', (e) => {
   } else if (t.matches('[data-setting="initialBalance"]')) {
     const n = parseAmount(t.value);
     t.value = n ? won(n) : '';
+    // iOS에서 키보드를 닫지 않고 바로 탭을 눌러 이동해도 저장되도록 즉시 저장
+    updateSettings({ initialBalance: n }, { silent: true });
+  } else if (t.matches('[data-setting="childName"]')) {
+    updateSettings({ childName: t.value.trim() }, { silent: true });
+    updateTitle();
   }
 });
 
@@ -575,7 +584,6 @@ view.addEventListener('change', async (e) => {
     updateSettings({ childName: t.value.trim() });
   } else if (t.matches('[data-setting="initialBalance"]')) {
     updateSettings({ initialBalance: parseAmount(t.value) });
-    toast('저장했어요');
   } else if (t.matches('input[type="file"][data-act="import"]')) {
     const file = t.files?.[0];
     if (!file) return;
